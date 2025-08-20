@@ -1,55 +1,76 @@
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>Auth Callback</title></head>
-<body>
+<head><meta charset="utf-8"><title>Auth Callback (debug)</title></head>
+<body style="font:16px/1.5 system-ui,Arial;padding:16px">
+<pre id="log" style="white-space:pre-wrap"></pre>
 <script>
   const USER_POOL_DOMAIN = "https://ap-northeast-1mnfuoun8z.auth.ap-northeast-1.amazoncognito.com";
   const CLIENT_ID = "5gaeq8057ds9puocgl29ej60qp";
   const REDIRECT_URI = "https://d271qmc6nzrst9.cloudfront.net/auth/callback.html";
   const HOME = "https://d271qmc6nzrst9.cloudfront.net/";
 
-  async function exchangeToken(code){
-    const codeVerifier = localStorage.getItem("pkce_verifier");
-    const expectedState = localStorage.getItem("oauth_state");
-    const returnedState = new URLSearchParams(location.search).get("state");
+  const logEl = document.getElementById("log");
+  const log = (...args)=>{ console.log(...args); logEl.textContent += args.join(" ") + "\n"; };
 
-    // state/Verifier をチェック
-    if (!code || !codeVerifier || !returnedState || returnedState !== expectedState) {
-      alert("PKCE state lost. Try login again.");
-      location.href = HOME;
-      return;
+  (async function main(){
+    const params = new URLSearchParams(location.search);
+    const code = params.get("code");
+    const returnedState = params.get("state");
+
+    const verifier = localStorage.getItem("pkce_verifier");
+    const expectedState = localStorage.getItem("oauth_state");
+
+    log("[CB] href =", location.href);
+    log("[CB] code ? ", !!code);
+    log("[CB] returnedState =", returnedState);
+    log("[CB] verifier exists ?", !!verifier, verifier ? ("len="+verifier.length) : "");
+    log("[CB] expectedState =", expectedState);
+
+    // 一致チェック
+    if (!code) { log("❌ no code"); alert("No code"); location.href = HOME; return; }
+    if (!verifier) { log("❌ no pkce_verifier"); alert("PKCE state lost (no verifier)."); location.href = HOME; return; }
+    if (!returnedState || returnedState !== expectedState) {
+      log("❌ state mismatch");
+      alert("PKCE state lost (state mismatch).");
+      location.href = HOME; return;
     }
 
+    // ここからトークン交換
     const body = new URLSearchParams({
       grant_type: "authorization_code",
       client_id: CLIENT_ID,
       code,
       redirect_uri: REDIRECT_URI,
-      code_verifier: codeVerifier
+      code_verifier: verifier
     });
-    const res = await fetch(USER_POOL_DOMAIN + "/oauth2/token", {
+
+    const tokenUrl = USER_POOL_DOMAIN + "/oauth2/token";
+    log("[CB] POST", tokenUrl);
+    const res = await fetch(tokenUrl, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body
     });
-    if (!res.ok) {
-      console.error(await res.text());
-      alert("Token exchange failed");
-      location.href = HOME;
-      return;
-    }
-    const json = await res.json();
 
-    // 後始末（使い捨て）
+    log("[CB] token status =", res.status);
+    if (!res.ok) {
+      const errText = await res.text();
+      log("❌ token error =", errText);
+      alert("Token exchange failed");
+      location.href = HOME; return;
+    }
+
+    const json = await res.json();
+    log("[CB] got id_token ?", !!json.id_token);
+
+    // 後始末
     localStorage.removeItem("pkce_verifier");
     localStorage.removeItem("oauth_state");
 
     localStorage.setItem("id_token", json.id_token);
     location.href = HOME;
-  }
-
-  const params = new URLSearchParams(location.search);
-  exchangeToken(params.get("code"));
+  })();
 </script>
 </body>
 </html>
+
