@@ -67,7 +67,14 @@ header{
   background:
     radial-gradient(800px 300px at 70% -40%, color-mix(in srgb, var(--brand) 8%, transparent), transparent),
     radial-gradient(600px 260px at -10% -20%, color-mix(in srgb, var(--brand-strong) 10%, transparent), transparent);
-  border-bottom:1px solid var(--border);
+  border-bottom:none;
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px; height: 80px;
+  background: linear-gradient(to bottom, rgba(11,12,16,0), var(--bg));
+  pointer-events: none; /* クリック無効化 */
 }
 .hero-grid{display:grid; gap:28px; align-items:center; grid-template-columns:1.3fr 1fr}
 @media (max-width: 840px){ .hero-grid{grid-template-columns:1fr} }
@@ -105,6 +112,12 @@ section{padding:40px 0}
 .card p{margin:0; color:var(--muted)}
 @media (max-width: 900px){ .cards{grid-template-columns:repeat(2,1fr)} }
 @media (max-width: 560px){ .cards{grid-template-columns:1fr} }
+
+/* features */
+#features {
+  position: relative;
+  background: linear-gradient(to top, var(--bg) 0, rgba(11,12,16,0) 80px), var(--bg);
+}
 
 /* Footer */
 footer{border-top:1px solid var(--border); color:var(--muted); padding:24px 0 60px; text-align:center}
