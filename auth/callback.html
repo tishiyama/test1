@@ -31,6 +31,13 @@
       code_verifier: verifier
     });
 
+    <!-- fetch の直前に追加 -->
+    console.log("[TOKEN] client_id=", CLIENT_ID);
+    console.log("[TOKEN] redirect_uri=", REDIRECT_URI);
+    console.log("[TOKEN] code len=", (code||"").length);
+    console.log("[TOKEN] code_verifier len=", (verifier||"").length);
+    console.log("[TOKEN] POST body=", Object.fromEntries(body)); // grant_type, client_id, code, redirect_uri, code_verifier
+  
     const res = await fetch(USER_POOL_DOMAIN + "/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -40,7 +47,7 @@
     if (!res.ok) {
       const text = await res.text();
       alert("TOKEN ERROR:\n" + text);
-      console.log("token error:", text);
+      console.log("token error body:", text);
       return;
     }
 
