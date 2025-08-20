@@ -45,7 +45,7 @@
     console.log("[LOGIN] set pkce_verifier len=", codeVerifier.length);
     console.log("[LOGIN] set oauth_state =", state);
 
-    const url = new URL(USER_POOL_DOMAIN + "/oauth2/authorize");
+    const url = new URL(USER_POOL_DOMAIN + "/login");
     url.searchParams.set("client_id", CLIENT_ID);
     url.searchParams.set("response_type", "code");
     url.searchParams.set("scope", "openid email profile");
