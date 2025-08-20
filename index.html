@@ -15,52 +15,41 @@
   </p>
 
   <script>
-    // ====== 設定（必ず置き換え） ======
-    const REGION = "ap-northeast-1";
-    const USER_POOL_DOMAIN = "https://ap-northeast-1mnfuoun8z.auth.ap-northeast-1.amazoncognito.com";
-    const CLIENT_ID = "5gaeq8057ds9puocgl29ej60qp";
-    const REDIRECT_URI = "https://d271qmc6nzrst9.cloudfront.net/auth/callback.html";
-    const LOGOUT_REDIRECT = "https://d271qmc6nzrst9.cloudfront.net/";
+  const USER_POOL_DOMAIN = "https://ap-northeast-1mnfuoun8z.auth.ap-northeast-1.amazoncognito.com";
+  const CLIENT_ID = "5gaeq8057ds9puocgl29ej60qp";
+  const REDIRECT_URI = "https://d271qmc6nzrst9.cloudfront.net/auth/callback.html";
 
-    // ====== 表示 / トークン確認 ======
-    const idToken = localStorage.getItem("id_token");
-    const status = document.getElementById("status");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    if (idToken) {
-      const payload = JSON.parse(atob(idToken.split(".")[1]));
-      status.textContent = `Signed in as ${payload.email || payload["cognito:username"]}`;
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-    }
+  const random = (len)=>btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(len))))
+    .replace(/[^a-zA-Z0-9]/g,"").slice(0,len);
+  async function sha256b64url(str){
+    const buf=new TextEncoder().encode(str);
+    const hash=await crypto.subtle.digest('SHA-256',buf);
+    return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
 
-    // ====== PKCE util ======
-    const random = (len)=>btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(len)))).replace(/[^a-zA-Z0-9]/g,"").slice(0,len);
-    async function sha256(str){const buf=new TextEncoder().encode(str);const hash=await crypto.subtle.digest('SHA-256',buf);return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+  async function startLogin(){
+    const codeVerifier = random(64);
+    const codeChallenge = await sha256b64url(codeVerifier);
+    const state = random(24);
 
-    // ====== Login（Hosted UIへリダイレクト） ======
-    loginBtn.onclick = async () => {
-      const codeVerifier = random(64);
-      const codeChallenge = await sha256(codeVerifier);
-      sessionStorage.setItem("pkce_verifier", codeVerifier);
-      const url = new URL(USER_POOL_DOMAIN + "/oauth2/authorize");
-      url.searchParams.set("client_id", CLIENT_ID);
-      url.searchParams.set("response_type", "code");
-      url.searchParams.set("scope", "openid email profile");
-      url.searchParams.set("redirect_uri", REDIRECT_URI);
-      url.searchParams.set("code_challenge_method", "S256");
-      url.searchParams.set("code_challenge", codeChallenge);
-      location.href = url.toString();
-    };
+    // ここを localStorage に
+    localStorage.setItem("pkce_verifier", codeVerifier);
+    localStorage.setItem("oauth_state", state);
 
-    // ====== Logout（Hosted UIのログアウトURLへ） ======
-    logoutBtn.onclick = () => {
-      localStorage.removeItem("id_token");
-      const url = new URL(USER_POOL_DOMAIN + "/logout");
-      url.searchParams.set("client_id", CLIENT_ID);
-      url.searchParams.set("logout_uri", LOGOUT_REDIRECT);
-      location.href = url.toString();
-    };
-  </script>
+    const url = new URL(USER_POOL_DOMAIN + "/oauth2/authorize");
+    url.searchParams.set("client_id", CLIENT_ID);
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("scope", "openid email profile");
+    url.searchParams.set("redirect_uri", REDIRECT_URI);
+    url.searchParams.set("code_challenge_method", "S256");
+    url.searchParams.set("code_challenge", codeChallenge);
+    url.searchParams.set("state", state);
+    location.href = url.toString();
+  }
+
+  document.getElementById("loginBtn").onclick = startLogin;
+</script>
 </body>
 </html>
+
+
