@@ -1,217 +1,30 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <title>My Site | ホーム</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="シンプルでレスポンシブなホームページのサンプル" />
+  <meta charset="utf-8">
+  <title>My Site</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 外部CSS -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Header -->
   <header>
-    <div class="container nav" role="navigation" aria-label="メインナビ">
-      <div class="logo">
-        <span class="logo-badge" aria-hidden="true"></span>
-        <span>My Site</span>
-      </div>
-      <nav class="nav-links" aria-label="リンク">
-        <a class="active" href="/">ホーム</a>
-        <a href="#features">機能</a>
-        <a href="#about">概要</a>
-        <a href="#contact">お問い合わせ</a>
-      </nav>
-      <div class="auth">
-        <span id="status" class="statusline">Not signed in</span>
-        <button id="loginBtn" class="btn primary">Sign in</button>
-        <button id="logoutBtn" class="btn ghost hidden">Sign out</button>
-      </div>
-      <button class="hamburger" id="hamburger" aria-label="メニュー">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-    <div class="menu-panel" id="menuPanel">
-      <div class="container">
-        <a href="/">ホーム</a>
-        <a href="#features">機能</a>
-        <a href="#about">概要</a>
-        <a href="#contact">お問い合わせ</a>
-        <div style="display:flex; gap:10px; align-items:center; padding-top:6px">
-          <button id="loginBtn_sp" class="btn primary">Sign in</button>
-          <button id="logoutBtn_sp" class="btn ghost hidden">Sign out</button>
-        </div>
-      </div>
-    </div>
+    <h1>TOPページあばんば</h1>
   </header>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="container hero-grid">
-      <div>
-        <span class="pill">シンプル &amp; レスポンシブ</span>
-        <h1>TOPページあばんば</h1>
-        <p>Cognito ログイン対応の最小HPフレーム。軽量CSSでサクッと。</p>
-        <div class="cta">
-          <a class="btn primary" href="#features">はじめる</a>
-          <a class="btn" href="#about">使い方を見る</a>
-        </div>
-      </div>
-      <div class="frame" aria-label="プレビュー">
-        <div class="bar">
-          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-          <span style="margin-left:8px; color:var(--muted); font-size:12px">/welcome</span>
-        </div>
-        <div class="viewport">
-          <p style="margin:0 0 8px">ようこそ！ここにお知らせや最新情報を置けます。</p>
-          <ul style="margin:0 0 8px; padding-left:18px; color:var(--muted)">
-            <li>ログイン状態に応じてボタンが切替</li>
-            <li>スマホではメニューが折りたたみ</li>
-            <li>カードレイアウトでコンテンツを整理</li>
-          </ul>
-          <p class="statusline">状態: <span id="status_mini">Not signed in</span></p>
-        </div>
-      </div>
+  <main>
+    <p id="status">Not signed in</p>
+    <div class="btn-area">
+      <button id="loginBtn">Sign in</button>
+      <button id="logoutBtn" style="display:none">Sign out</button>
     </div>
-  </section>
+  </main>
 
-  <!-- Features -->
-  <section id="features">
-    <div class="container">
-      <h2 style="margin:0 0 12px">使えること</h2>
-      <p style="margin:0 0 18px; color:var(--muted)">小さく始めて拡張しやすい構造です。</p>
-      <div class="cards">
-        <article class="card">
-          <h3>高速</h3>
-          <p>純粋なHTML+CSS+JS。読み込みが軽く、CDN配信に最適。</p>
-        </article>
-        <article class="card">
-          <h3>レスポンシブ</h3>
-          <p>グリッドと柔軟な余白で、スマホからPCまで自然にフィット。</p>
-        </article>
-        <article class="card">
-          <h3>ログイン連携</h3>
-          <p>Cognito PKCE で安全にログイン。Signed in 表示とボタン制御。</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- About -->
-  <section id="about">
-    <div class="container">
-      <h2 style="margin:0 0 12px">概要</h2>
-      <p style="margin:0; color:var(--muted)">このテンプレは、ヘッダ／ヒーロー／カード／フッタを備えた最小フレームです。必要に応じてセクションを増やして使ってください。</p>
-    </div>
-  </section>
-
-  <!-- Contact -->
-  <section id="contact">
-    <div class="container">
-      <h2 style="margin:0 0 12px">お問い合わせ</h2>
-      <p style="margin:0; color:var(--muted)">お問い合わせは <a href="mailto:info@example.com">info@example.com</a> まで。</p>
-    </div>
-  </section>
-
-  <!-- Footer -->
   <footer>
-    <div class="container">
-      © <span id="y"></span> My Site
-    </div>
+    <p>&copy; 2025 My Site</p>
   </footer>
 
-  <script>
-    // 年表示
-    document.getElementById('y').textContent = new Date().getFullYear();
-
-    // モバイルメニュー
-    const hamburger = document.getElementById('hamburger');
-    const menuPanel = document.getElementById('menuPanel');
-    hamburger?.addEventListener('click', ()=> menuPanel.classList.toggle('open'));
-
-    // ====== 設定 ======
-    const USER_POOL_DOMAIN = "https://titti.auth.ap-northeast-1.amazoncognito.com";
-    const CLIENT_ID = "5138394cla6q4mnvber6p9i2af";
-    const REDIRECT_URI = "https://d271qmc6nzrst9.cloudfront.net/auth/callback.html";
-    const LOGOUT_REDIRECT = "https://d271qmc6nzrst9.cloudfront.net/";
-    // ===================
-
-    // base64url → JSON
-    function b64urlDecode(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4)s+='='; return atob(s); }
-    function parseJwt(t){ const p=t.split('.'); if(p.length!==3) throw new Error('bad jwt'); return JSON.parse(b64urlDecode(p[1])); }
-
-    function reflectSignin(){
-      const t = localStorage.getItem("id_token");
-      const status = document.getElementById("status");
-      const statusMini = document.getElementById("status_mini");
-      const loginBtn = document.getElementById("loginBtn");
-      const logoutBtn = document.getElementById("logoutBtn");
-      const loginSp = document.getElementById("loginBtn_sp");
-      const logoutSp = document.getElementById("logoutBtn_sp");
-
-      if(!t){
-        status.textContent = "Not signed in";
-        statusMini.textContent = "Not signed in";
-        loginBtn.classList.remove("hidden");
-        logoutBtn.classList.add("hidden");
-        if (loginSp){ loginSp.classList.remove("hidden"); }
-        if (logoutSp){ logoutSp.classList.add("hidden"); }
-        return;
-      }
-      try{
-        const p = parseJwt(t);
-        const who = p.email || p["cognito:username"] || p.sub;
-        status.textContent = `Signed in as ${who}`;
-        statusMini.textContent = `Signed in as ${who}`;
-      }catch{
-        status.textContent = "Signed in";
-        statusMini.textContent = "Signed in";
-      }
-      loginBtn.classList.add("hidden");
-      logoutBtn.classList.remove("hidden");
-      if (loginSp){ loginSp.classList.add("hidden"); }
-      if (logoutSp){ logoutSp.classList.remove("hidden"); }
-    }
-    reflectSignin();
-
-    // PKCEユーティリティ
-    const rand = (len)=>btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(len)))).replace(/[^a-zA-Z0-9]/g,"").slice(0,len);
-    async function sha256b64url(str){
-      const buf = new TextEncoder().encode(str);
-      const hash = await crypto.subtle.digest("SHA-256", buf);
-      return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-    }
-
-    async function startLogin(){
-      localStorage.removeItem("pkce_verifier");
-      localStorage.removeItem("oauth_state");
-      const verifier = rand(64);
-      const challenge = await sha256b64url(verifier);
-      const state = rand(24);
-      localStorage.setItem("pkce_verifier", verifier);
-      localStorage.setItem("oauth_state", state);
-
-      const url = new URL(USER_POOL_DOMAIN + "/oauth2/authorize");
-      url.searchParams.set("client_id", CLIENT_ID);
-      url.searchParams.set("response_type", "code");
-      url.searchParams.set("scope", "openid email profile");
-      url.searchParams.set("redirect_uri", REDIRECT_URI);
-      url.searchParams.set("code_challenge_method", "S256");
-      url.searchParams.set("code_challenge", challenge);
-      url.searchParams.set("state", state);
-      window.location.href = url.toString();
-    }
-    function startLogout(){
-      localStorage.removeItem("id_token");
-      const url = new URL(USER_POOL_DOMAIN + "/logout");
-      url.searchParams.set("client_id", CLIENT_ID);
-      url.searchParams.set("logout_uri", LOGOUT_REDIRECT);
-      window.location.href = url.toString();
-    }
-
-    document.getElementById("loginBtn")?.addEventListener("click", startLogin);
-    document.getElementById("logoutBtn")?.addEventListener("click", startLogout);
-    document.getElementById("loginBtn_sp")?.addEventListener("click", startLogin);
-    document.getElementById("logoutBtn_sp")?.addEventListener("click", startLogout);
-  </script>
+  <!-- 外部JS -->
+  <script src="app.js"></script>
 </body>
 </html>
