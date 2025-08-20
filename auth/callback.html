@@ -1,47 +1,14 @@
 <!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Auth Callback</title></head>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Auth Callback</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 任意：共通スタイルを使いたければ以下を有効化（なくてもOK） -->
+  <!-- <link rel="stylesheet" href="../styles.css"> -->
+</head>
 <body>
-<script>
-  /* ====== 設定（indexと同じ値） ====== */
-  const USER_POOL_DOMAIN = "https://titti.auth.ap-northeast-1.amazoncognito.com";
-  const CLIENT_ID = "5138394cla6q4mnvber6p9i2af";
-  const REDIRECT_URI = "https://d271qmc6nzrst9.cloudfront.net/auth/callback.html";
-  const HOME = "https://d271qmc6nzrst9.cloudfront.net/";
-  /* ==================================== */
-
-  (async () => {
-    const q = new URLSearchParams(location.search);
-    const code = q.get("code");
-    const state = q.get("state");
-    if (!code) { location.href = HOME; return; }
-
-    const verifier = localStorage.getItem("pkce_verifier");
-    const expectedState = localStorage.getItem("oauth_state");
-    if (!verifier || !state || state !== expectedState) { location.href = HOME; return; }
-
-    const body = new URLSearchParams({
-      grant_type: "authorization_code",
-      client_id: CLIENT_ID,
-      code,
-      redirect_uri: REDIRECT_URI,
-      code_verifier: verifier
-    });
-
-    const res = await fetch(USER_POOL_DOMAIN + "/oauth2/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body
-    });
-    if (!res.ok) { location.href = HOME; return; }
-
-    const json = await res.json();
-    localStorage.removeItem("pkce_verifier");
-    localStorage.removeItem("oauth_state");
-    if (json.id_token) localStorage.setItem("id_token", json.id_token);
-
-    location.href = HOME; // 絶対URLで同一ドメインへ
-  })();
-</script>
+  <!-- 画面は出さず即処理 → ホームに戻るだけ -->
+  <script src="callback.js"></script>
 </body>
 </html>
