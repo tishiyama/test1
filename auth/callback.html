@@ -4,6 +4,11 @@
 <body style="font:16px/1.5 system-ui,Arial;padding:16px">
 <pre id="log" style="white-space:pre-wrap"></pre>
 <script>
+    const q = new URLSearchParams(location.search);
+  if (q.get("error")) {
+    alert("OAuth error: " + q.get("error") + "\n" + (q.get("error_description")||""));
+    // 必要なら console.log(location.search) で全文確認
+  }
   const USER_POOL_DOMAIN = "https://titti.auth.ap-northeast-1.amazoncognito.com";
   const CLIENT_ID = "5gaeq8057ds9puocgl29ej60qp";
   const REDIRECT_URI = "https://d271qmc6nzrst9.cloudfront.net/auth/callback.html";
