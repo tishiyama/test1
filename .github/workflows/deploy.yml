@@ -8,10 +8,102 @@ permissions:
   id-token: write   # OIDCで必要
   contents: read
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  deploy:
+  deploy-web:
     runs-on: ubuntu-latest
 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ▼（任意）package.jsonがある時だけビルド
+      - name: Setup Node
+        if: hashFiles('package.json') != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        if: hashFiles('package.json') != ''
+        run: npm ci
+
+      - name: Build
+        if: hashFiles('package.json') != ''
+        run: npm run build --if-present
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # ▼ まず全体をクリーン同期（キャッシュ無しでベース合わせ）
+      - name: Sync base (no delete)
+        run: |
+          aws s3 sync . s3://${{ vars.S3_BUCKET }} \
+            --exclude ".git/*" \
+            --exclude ".github/*" \
+            --exclude "node_modules/*" \
+            --exclude "lambda/*" \
+            --delete
+
+      # ▼ HTML は短命キャッシュ（最新を取りやすく）
+      - name: Set Cache-Control for HTML (no-cache)
+        run: |
+          aws s3 cp . s3://${{ vars.S3_BUCKET }} \
+            --recursive \
+            --exclude "*" --include "*.html" \
+            --metadata-directive REPLACE \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --content-type "text/html; charset=utf-8"
+
+      # ▼ CSS/JS/画像は長命キャッシュ（immutable推奨：ファイル名にハッシュがある前提）
+      - name: Set Cache-Control for static assets (long)
+        run: |
+          # CSS
+          aws s3 cp . s3://${{ vars.S3_BUCKET }} \
+            --recursive \
+            --exclude "*" --include "*.css" \
+            --metadata-directive REPLACE \
+            --cache-control "public, max-age=31536000, immutable" \
+            --content-type "text/css; charset=utf-8"
+          # JS（.js）
+          aws s3 cp . s3://${{ vars.S3_BUCKET }} \
+            --recursive \
+            --exclude "*" --include "*.js" \
+            --metadata-directive REPLACE \
+            --cache-control "public, max-age=31536000, immutable" \
+            --content-type "application/javascript; charset=utf-8"
+          # JS（.mjs を明示補正）
+          aws s3 cp . s3://${{ vars.S3_BUCKET }} \
+            --recursive \
+            --exclude "*" --include "*.mjs" \
+            --metadata-directive REPLACE \
+            --cache-control "public, max-age=31536000, immutable" \
+            --content-type "application/javascript; charset=utf-8"
+          # 画像（必要な拡張子だけ例示）
+          aws s3 cp . s3://${{ vars.S3_BUCKET }} \
+            --recursive \
+            --exclude "*" --include "*.png" --include "*.jpg" --include "*.jpeg" --include "*.gif" --include "*.svg" --include "*.webp" \
+            --metadata-directive REPLACE \
+            --cache-control "public, max-age=31536000, immutable"
+
+      # ▼ 最小限の無効化（HTML/ルート中心）
+      - name: Invalidate CloudFront cache (minimal)
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/" "/index.html" "/auth/callback.html"
+
+  # ---------------（任意）Lambda を一緒に更新したい場合 ---------------
+  deploy-lambda:
+    runs-on: ubuntu-latest
+    needs: deploy-web
+    if: contains(github.event.head_commit.message, '[deploy-lambda]') || !contains(github.event.head_commit.message, '[skip-lambda]')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,15 +114,13 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Upload to S3
+      - name: Zip Lambda (minimal)
+        working-directory: lambda
         run: |
-          aws s3 sync . s3://${{ vars.S3_BUCKET }} \
-            --delete \
-            --exclude ".git/*" \
-            --exclude ".github/*"
+          zip -r ../numerology.zip index.mjs
 
-      - name: Invalidate CloudFront cache
+      - name: Update Lambda code
         run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*"
+          aws lambda update-function-code \
+            --function-name ${{ vars.LAMBDA_FUNCTION_NAME }} \
+            --zip-file fileb://numerology.zip
