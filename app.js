@@ -80,3 +80,32 @@ document.getElementById("logoutBtn")?.addEventListener("click", ()=>{
   url.searchParams.set("logout_uri", LOGOUT_REDIRECT);
   window.location.href = url.toString();
 });
+
+// app.js に追記
+const API_BASE = "https://<your-api-id>.execute-api.ap-northeast-1.amazonaws.com";
+
+document.getElementById('numForm')?.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const at = localStorage.getItem('access_token');
+  if(!at){ alert('先にSign inしてください'); return; }
+
+  const name = document.getElementById('nm').value.trim();
+  const bd   = document.getElementById('bd').value;
+
+  const res = await fetch(`${API_BASE}/numerology`, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + at,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name, birthdate: bd })
+  });
+
+  const out = document.getElementById('numOut');
+  if(!res.ok){
+    out.textContent = `Error ${res.status}: ` + await res.text();
+    return;
+    }
+  const json = await res.json();
+  out.textContent = JSON.stringify(json, null, 2);
+});
